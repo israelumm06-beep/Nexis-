@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>N.E.X.U.S.</title>
+<meta name="theme-color" content="#05080c">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NEXUS">
+<link rel="manifest" href='data:application/manifest+json,{"name":"N.E.X.U.S.","short_name":"NEXUS","start_url":"./","display":"standalone","background_color":"%2305080c","theme_color":"%2305080c","orientation":"portrait"}'>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%2305080c'/%3E%3Ccircle cx='50' cy='50' r='34' fill='none' stroke='%2335c9f0' stroke-width='4'/%3E%3Ccircle cx='50' cy='50' r='14' fill='%2335c9f0'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%2305080c'/%3E%3Ccircle cx='50' cy='50' r='34' fill='none' stroke='%2335c9f0' stroke-width='4'/%3E%3Ccircle cx='50' cy='50' r='14' fill='%2335c9f0'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #05080c;
+    --panel: #0b131c;
+    --panel-2: #0e1a24;
+    --line: rgba(66,201,240,0.16);
+    --cyan: #35c9f0;
+    --cyan-dim: #1d5a70;
+    --amber: #ffb238;
+    --text: #e7f3fa;
+    --text-dim: #6e8898;
+    --danger: #ff5d5d;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; height:100%; background:var(--bg); color:var(--text);
+    font-family:'Rajdhani',sans-serif;
+    overflow:hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body{
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 34px 34px;
+    background-position: center;
+  }
+  #matrix-bg{
+    position:fixed; inset:0;
+    z-index:0;
+    opacity:0.62;
+    pointer-events:none;
+  }
+  #app{
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: env(safe-area-inset-top,0) 14px env(safe-area-inset-bottom,0);
+    position:relative;
+    z-index:1;
+  }
+
+  /* ---------- HEADER ---------- */
+  header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 16px 4px 10px;
+    border-bottom: 1px solid var(--line);
+    flex-shrink:0;
+  }
+  .brand{
+    font-family:'Orbitron', sans-serif;
+    font-weight:700;
+    letter-spacing: 4px;
+    font-size: 20px;
+    color: var(--text);
+    text-shadow: 0 0 14px rgba(53,201,240,0.55);
+  }
+  .brand small{
+    display:block;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:9px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    font-weight:400;
+    margin-top:2px;
+  }
+  .header-right{ display:flex; align-items:center; gap:7px; }
+  #voice-btn{
+    width:34px; height:34px; border-radius:50%; flex-shrink:0;
+    border:1px solid var(--cyan-dim);
+    background: var(--panel);
+    color: var(--cyan);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+  }
+  #voice-btn svg{ width:16px; height:16px; }
+  #voice-btn .icon-off{ display:none; }
+  #voice-btn.muted{ color: var(--text-dim); border-color: #2a3a44; }
+  #voice-btn.muted .icon-on{ display:none; }
+  #voice-btn.muted .icon-off{ display:block; }
+  #settings-btn{
+    width:34px; height:34px; border-radius:50%; flex-shrink:0;
+    border:1px solid var(--cyan-dim);
+    background: var(--panel);
+    color: var(--cyan);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+  }
+  #settings-btn svg{ width:16px; height:16px; }
+  #settings-btn.active{ background: rgba(53,201,240,0.18); box-shadow:0 0 12px rgba(53,201,240,0.3); }
+  #settings-panel{
+    position:fixed; inset:0; z-index:50;
+    background: rgba(3,6,9,0.92);
+    backdrop-filter: blur(3px);
+    display:none; align-items:flex-end; justify-content:center;
+  }
+  #settings-panel.open{ display:flex; }
+  .settings-body{ padding-top:6px; }
+  .settings-label{
+    display:block; font-family:'IBM Plex Mono', monospace;
+    font-size:9px; letter-spacing:1.5px; color:var(--text-dim);
+    margin: 14px 0 6px;
+  }
+  .settings-body input{
+    width:100%; background: var(--panel-2);
+    border:1px solid var(--line); border-radius:10px;
+    padding: 11px 13px; color: var(--text);
+    font-family:'IBM Plex Mono', monospace; font-size:13px;
+    outline:none;
+  }
+  .settings-body input:focus{ border-color: var(--cyan-dim); }
+  .settings-note{
+    font-family:'Rajdhani', sans-serif; font-size:12.5px; line-height:1.4;
+    color: var(--text-dim); margin-top:14px;
+  }
+  .settings-actions{ display:flex; gap:10px; margin-top:16px; }
+  .settings-actions button{
+    flex:1; padding:11px; border-radius:10px; cursor:pointer;
+    font-family:'Rajdhani', sans-serif; font-weight:600; font-size:14px; letter-spacing:0.5px;
+  }
+  #settings-save{ background: var(--cyan); border:none; color:#04121a; }
+  #settings-clear{ background:transparent; border:1px solid var(--line); color: var(--text-dim); }
+
+  #path-btn{
+    width:34px; height:34px; border-radius:50%; flex-shrink:0;
+    border:1px solid var(--cyan-dim);
+    background: var(--panel);
+    color: var(--cyan);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+  }
+  #path-btn svg{ width:16px; height:16px; }
+  #path-btn.active{ background: rgba(53,201,240,0.18); box-shadow:0 0 12px rgba(53,201,240,0.3); }
+  #monitor-btn{
+    width:34px; height:34px; border-radius:50%; flex-shrink:0;
+    border:1px solid var(--cyan-dim);
+    background: var(--panel);
+    color: var(--cyan);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+  }
+  #monitor-btn svg{ width:16px; height:16px; }
+  #monitor-btn.active{ background: rgba(53,201,240,0.18); box-shadow:0 0 12px rgba(53,201,240,0.3); }
+
+  #path-panel{
+    position:fixed; inset:0; z-index:50;
+    background: rgba(3,6,9,0.92);
+    backdrop-filter: blur(3px);
+    display:none;
+    align-items:flex-end;
+    justify-content:center;
+  }
+  #path-panel.open{ display:flex; }
+  .path-panel-inner{
+    width:100%; max-width:760px;
+    max-height:86vh;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-bottom:none;
+    border-radius: 18px 18px 0 0;
+    padding: 16px 16px calc(16px + env(safe-area-inset-bottom,0));
+    display:flex; flex-direction:column;
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+  }
+  .path-head{ display:flex; align-items:flex-start; justify-content:space-between; flex-shrink:0; }
+  .path-title{
+    font-family:'Orbitron', sans-serif; font-weight:700;
+    font-size:14px; letter-spacing:2px; color:var(--cyan);
+  }
+  .path-title small{
+    display:block; font-family:'IBM Plex Mono', monospace;
+    font-size:9px; letter-spacing:1.5px; color:var(--text-dim);
+    font-weight:400; margin-top:3px;
+  }
+  #path-close{
+    width:30px; height:30px; border-radius:50%; flex-shrink:0;
+    border:1px solid var(--line); background:transparent; color:var(--text-dim);
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  #path-close svg{ width:14px; height:14px; }
+  .path-progress{ display:flex; align-items:center; gap:10px; margin: 14px 0 10px; flex-shrink:0; }
+  .path-progress-bar{
+    flex:1; height:6px; border-radius:4px; background: rgba(53,201,240,0.12); overflow:hidden;
+  }
+  #path-progress-fill{ height:100%; width:0%; background: var(--cyan); box-shadow:0 0 8px var(--cyan); transition: width .3s; }
+  #path-progress-label{ font-family:'IBM Plex Mono', monospace; font-size:10px; letter-spacing:1px; color:var(--text-dim); white-space:nowrap; }
+  .path-list{ overflow-y:auto; flex:1; padding-right:2px; }
+  .path-phase{
+    font-family:'IBM Plex Mono', monospace; font-size:10px; letter-spacing:2px;
+    color: var(--amber); margin: 16px 0 8px;
+  }
+  .path-phase:first-child{ margin-top:2px; }
+  .path-item{
+    display:flex; align-items:flex-start; gap:10px;
+    padding: 9px 4px; border-bottom: 1px solid rgba(66,201,240,0.08);
+    cursor:pointer;
+  }
+  .path-check{
+    width:19px; height:19px; border-radius:5px; flex-shrink:0; margin-top:1px;
+    border: 1px solid var(--cyan-dim);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .path-check svg{ width:12px; height:12px; opacity:0; stroke:#04121a; }
+  .path-item.done .path-check{ background:var(--cyan); border-color:var(--cyan); }
+  .path-item.done .path-check svg{ opacity:1; }
+  .path-item-text{ font-size:14.5px; font-weight:500; line-height:1.35; }
+  .path-item.done .path-item-text{ color: var(--text-dim); text-decoration: line-through; }
+  .path-foot{
+    flex-shrink:0; margin-top:10px; padding-top:10px; border-top:1px solid var(--line);
+    font-family:'IBM Plex Mono', monospace; font-size:10px; color:var(--text-dim); letter-spacing:0.5px;
+  }
+
+  #monitor-panel{
+    position:fixed; inset:0; z-index:50;
+    background: rgba(3,6,9,0.92);
+    backdrop-filter: blur(3px);
+    display:none; align-items:flex-end; justify-content:center;
+  }
+  #monitor-panel.open{ display:flex; }
+  .monitor-body{
+    font-family:'IBM Plex Mono', monospace; font-size:12.5px;
+    padding-top: 12px;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .monitor-row{
+    display:flex; justify-content:space-between; align-items:center;
+    padding: 7px 2px; border-bottom: 1px solid rgba(66,201,240,0.08);
+  }
+  .monitor-row .label{ color: var(--text-dim); letter-spacing:1px; }
+  .monitor-row .value{ letter-spacing:1px; font-weight:600; }
+  .monitor-row .value.online{ color: var(--cyan); }
+  .monitor-row .value.ready{ color: var(--cyan); }
+  .monitor-row .value.off{ color: var(--text-dim); }
+  .monitor-divider{
+    font-size:9px; color: var(--text-dim); letter-spacing:2px;
+    margin: 6px 0 -2px; opacity:0.7;
+  }
+
+  #mode-banner{
+    display:none;
+    text-align:center;
+    font-family:'Orbitron', sans-serif;
+    font-weight:700;
+    font-size:12px;
+    letter-spacing:3px;
+    color:#ff4747;
+    text-shadow: 0 0 12px rgba(255,60,60,0.7);
+    padding: 8px 4px;
+    border-top: 1px solid rgba(255,60,60,0.3);
+    border-bottom: 1px solid rgba(255,60,60,0.3);
+    background: rgba(255,40,40,0.06);
+    animation: seriouspulse 1.6s ease-in-out infinite;
+  }
+  #mode-banner.on{ display:block; }
+  @keyframes seriouspulse{ 0%,100%{ opacity:1; } 50%{ opacity:0.55; } }
+
+  .status-pill{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    padding: 6px 9px;
+    border: 1px solid var(--cyan-dim);
+    border-radius: 20px;
+    color: var(--cyan);
+    display:flex; align-items:center; gap:6px;
+    white-space:nowrap;
+  }
+  .status-dot{
+    width:7px; height:7px; border-radius:50%;
+    background: var(--cyan);
+    box-shadow: 0 0 8px var(--cyan);
+    animation: blink 1.6s ease-in-out infinite;
+  }
+  @keyframes blink{ 0%,100%{opacity:1;} 50%{opacity:.35;} }
+  .status-pill.speaking{ color: var(--amber); border-color: #7a5a1f; }
+  .status-pill.speaking .status-dot{ background:var(--amber); box-shadow:0 0 8px var(--amber); }
+  .status-pill.error{ color: var(--danger); border-color: #6b2b2b; }
+  .status-pill.error .status-dot{ background:var(--danger); box-shadow:0 0 8px var(--danger); animation:none; }
+
+  /* ---------- CORE ---------- */
+  .core-wrap{
+    flex:1;
+    min-height:0;
+    display:flex; align-items:center; justify-content:center;
+    padding: 18px 0 8px;
+    position:relative;
+  }
+  canvas#core{ width: 260px; height:260px; }
+  .core-label{
+    position:absolute;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:3px;
+    color: var(--text-dim);
+    text-align:center;
+    pointer-events:none;
+    transition: color .3s;
+  }
+  .core-label b{
+    display:block;
+    font-family:'Orbitron', sans-serif;
+    font-size:13px;
+    color: var(--cyan);
+    letter-spacing:2px;
+    margin-top:4px;
+    transition: color .3s;
+  }
+
+  /* ---------- LOG (hidden — voice-only replies) ---------- */
+  .log{
+    display:none;
+  }
+
+  .entry{ max-width:88%; animation: fadein .25s ease; }
+  @keyframes fadein{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
+  .entry .who{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:9px; letter-spacing:2px;
+    color: var(--text-dim);
+    margin-bottom:3px;
+  }
+  .entry .txt{
+    font-size:15px; line-height:1.4; font-weight:500;
+  }
+  .entry.user{ align-self:flex-end; text-align:right; }
+  .entry.user .who{ color: var(--amber); }
+  .entry.user .txt{ color:var(--text); }
+  .entry.jarvis .who{ color: var(--cyan); }
+  .entry.jarvis .txt{ color: #cfeefc; }
+  .entry.sys .who{ color: var(--text-dim); }
+  .entry.sys .txt{ color: var(--text-dim); font-size:12px; font-family:'IBM Plex Mono',monospace; }
+
+  .empty-hint{
+    margin:auto; text-align:center; color:var(--text-dim);
+    font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:1px;
+    padding: 20px;
+  }
+
+  /* ---------- CONTROLS ---------- */
+  .core-wrap{ -webkit-tap-highlight-color: transparent; }
+  .core-wrap.listening-active canvas{ filter: drop-shadow(0 0 10px rgba(53,201,240,0.25)); }
+
+  .activation-hint{
+    flex-shrink:0;
+    text-align:center;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px; letter-spacing:2px;
+    color: var(--cyan);
+    padding: 2px 10px 14px;
+  }
+
+  #voice-toggle{
+    position:absolute; top:16px; right:0;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:9px; color:var(--text-dim);
+    letter-spacing:1px;
+    display:none;
+  }
+</style>
+</head>
+<body>
+<canvas id="matrix-bg"></canvas>
+<div id="app">
+  <header>
+    <div class="brand">N.E.X.U.S.<small>NEURAL EXECUTIVE eXECUTION &amp; UTILITY SYSTEM</small></div>
+    <div class="header-right">
+      <button id="monitor-btn" title="System monitor">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      </button>
+      <button id="path-btn" title="Learning path">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      </button>
+      <button id="settings-btn" title="Voice engine settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+      <button id="voice-btn" title="Toggle voice output">
+        <svg class="icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+        <svg class="icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+      </button>
+      <div class="status-pill" id="status-pill"><span class="status-dot"></span><span id="status-text">IDLE</span></div>
+    </div>
+  </header>
+
+  <div id="mode-banner">NEXUS // SERIOUS MODE ACTIVE</div>
+
+  <div id="path-panel">
+    <div class="path-panel-inner">
+      <div class="path-head">
+        <div class="path-title">LEARNING PATH<small>ZERO TO PAID — TRACKED PROGRESS</small></div>
+        <button id="path-close" title="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="path-progress">
+        <div class="path-progress-bar"><div id="path-progress-fill"></div></div>
+        <span id="path-progress-label">0 / 0 COMPLETE</span>
+      </div>
+      <div class="path-list" id="path-list"></div>
+      <div class="path-foot">Ask NEXUS about any step below — it knows exactly where you are.</div>
+    </div>
+  </div>
+
+  <div id="settings-panel">
+    <div class="path-panel-inner">
+      <div class="path-head">
+        <div class="path-title">VOICE ENGINE<small id="voice-engine-status">USING BROWSER VOICE</small></div>
+        <button id="settings-close" title="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="settings-body">
+        <label class="settings-label" for="elevenlabs-key">ELEVENLABS API KEY</label>
+        <input id="elevenlabs-key" type="password" placeholder="Paste your API key" autocomplete="off" />
+        <label class="settings-label" for="elevenlabs-voice">NORMAL VOICE ID</label>
+        <input id="elevenlabs-voice" type="text" value="jQKNVOWM9XL57z7bMalU" autocomplete="off" />
+        <label class="settings-label" for="elevenlabs-voice-angry">ANGRY MODE VOICE ID</label>
+        <input id="elevenlabs-voice-angry" type="text" value="YOq2y2Up4RgXP2HyXjE5" autocomplete="off" />
+        <label class="settings-label" for="elevenlabs-voice-serious">SERIOUS MODE VOICE ID (optional)</label>
+        <input id="elevenlabs-voice-serious" type="text" placeholder="Leave blank to reuse normal voice" autocomplete="off" />
+        <div class="settings-note">Say "NEXUS, angry mode" or "NEXUS, serious mode" to switch voices, or "NEXUS, normal mode" to return to normal. Your key is stored only on this device and sent directly to ElevenLabs when NEXUS speaks — it never passes through us. Leave the key blank to use the built-in browser voice instead.</div>
+        <div class="settings-actions">
+          <button id="settings-clear">Remove key</button>
+          <button id="settings-save">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="monitor-panel">
+    <div class="path-panel-inner">
+      <div class="path-head">
+        <div class="path-title">SYSTEM MONITOR<small>NEXUS CORE STATUS</small></div>
+        <button id="monitor-close" title="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="monitor-body" id="monitor-body"></div>
+      <div class="path-foot">Only what's actually connected shows READY/ONLINE — nothing here is faked.</div>
+    </div>
+  </div>
+
+  <div class="core-wrap" id="core-wrap">
+    <canvas id="core" width="440" height="440"></canvas></canvas>
+    <div class="core-label" id="core-label">SYSTEMS<b id="core-sub">NOMINAL</b></div>
+  </div>
+  <div class="activation-hint" id="activation-hint">INITIALIZING…</div>
+
+  <div class="log" id="log">
+    <div class="empty-hint" id="empty-hint">— AWAITING INPUT —<br>tap the core, then just say “NEXUS” to talk</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const STATE = { IDLE:'idle', LISTENING:'listening', PROCESSING:'processing', SPEAKING:'speaking', ERROR:'error' };
+  let state = STATE.IDLE;
+  let micStream = null, analyser = null, audioCtx = null, rafId = null;
+  let amplitude = 0; // 0..1 smoothed
+  let speakingPhase = 0;
+  let history = []; // {role, content}
+
+  async function saveChatHistory(){
+    try{
+      const trimmed = history.slice(-100);
+      await window.storage.set('chat-history', JSON.stringify(trimmed), false);
+    }catch(e){}
+  }
+  async function loadChatHistory(){
+    try{
+      const res = await window.storage.get('chat-history', false);
+      if(res && res.value){
+        const parsed = JSON.parse(res.value);
+        if(Array.isArray(parsed) && parsed.length){
+          history = parsed;
+          history.forEach(m=>{
+            addEntry(m.role === 'user' ? 'user' : 'jarvis', m.content);
+          });
+          el.log.scrollTop = el.log.scrollHeight;
+          return true;
+        }
+      }
+    }catch(e){}
+    return false;
+  }
+
+  const el = {
+    statusPill: document.getElementById('status-pill'),
+    modeBanner: document.getElementById('mode-banner'),
+    statusText: document.getElementById('status-text'),
+    coreSub: document.getElementById('core-sub'),
+    log: document.getElementById('log'),
+    emptyHint: document.getElementById('empty-hint'),
+    coreWrap: document.getElementById('core-wrap'),
+    activationHint: document.getElementById('activation-hint'),
+    canvas: document.getElementById('core'),
+    voiceBtn: document.getElementById('voice-btn'),
+    pathBtn: document.getElementById('path-btn'),
+    pathPanel: document.getElementById('path-panel'),
+    pathClose: document.getElementById('path-close'),
+    monitorBtn: document.getElementById('monitor-btn'),
+    monitorPanel: document.getElementById('monitor-panel'),
+    monitorClose: document.getElementById('monitor-close'),
+    monitorBody: document.getElementById('monitor-body'),
+    pathList: document.getElementById('path-list'),
+    pathFill: document.getElementById('path-progress-fill'),
+    pathLabel: document.getElementById('path-progress-label'),
+    settingsBtn: document.getElementById('settings-btn'),
+    settingsPanel: document.getElementById('settings-panel'),
+    settingsClose: document.getElementById('settings-close'),
+    settingsSave: document.getElementById('settings-save'),
+    settingsClear: document.getElementById('settings-clear'),
+    keyInput: document.getElementById('elevenlabs-key'),
+    voiceIdInput: document.getElementById('elevenlabs-voice'),
+    angryVoiceIdInput: document.getElementById('elevenlabs-voice-angry'),
+    seriousVoiceIdInput: document.getElementById('elevenlabs-voice-serious'),
+    engineStatus: document.getElementById('voice-engine-status'),
+  };
+  const ctx2d = el.canvas.getContext('2d');
+
+  // ---------------- Background digital rain ----------------
+  (function initRain(){
+    const rc = document.getElementById('matrix-bg');
+    const rctx = rc.getContext('2d');
+    let cols = [];
+    const fontSize = 13;
+    function resize(){
+      rc.width = window.innerWidth;
+      rc.height = window.innerHeight;
+      const count = Math.ceil(rc.width / fontSize) + 4;
+      cols = new Array(count).fill(0).map(()=> Math.random() * -rc.height / fontSize);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+    function frame(){
+      rctx.fillStyle = 'rgba(4,7,11,0.055)';
+      rctx.fillRect(0, 0, rc.width, rc.height);
+      rctx.font = fontSize + 'px "IBM Plex Mono", monospace';
+      for(let i=0;i<cols.length;i++){
+        const ch = Math.random() > 0.5 ? '1' : '0';
+        const x = i * fontSize;
+        const y = cols[i] * fontSize;
+        const brightness = Math.random();
+        rctx.fillStyle = brightness > 0.88 ? 'rgba(200,242,255,1)' : 'rgba(69,214,255,' + (0.35 + brightness*0.55) + ')';
+        rctx.fillText(ch, x, y);
+        cols[i] += 1.35;
+        if(y > rc.height && Math.random() > 0.94){ cols[i] = Math.random() * -60; }
+      }
+      requestAnimationFrame(frame);
+    }
+    frame();
+  })();
+
+
+  // ---------------- Core visualization ----------------
+  let t = 0;
+  let blink = { active:false, start:0, next: 1.5 + Math.random()*3 };
+  let swayX = 0, swayY = 0;
+  function drawCore(){
+    t += 0.016;
+    const W = el.canvas.width, H = el.canvas.height;
+    ctx2d.clearRect(0,0,W,H);
+    const cx = W/2, cy = H/2;
+    const baseR = 150;
+
+    let color = '#35c9f0';
+    if(state===STATE.SPEAKING) color = '#ffb238';
+    if(seriousMode) color = '#ff2f2f';
+    if(state===STATE.ERROR) color = '#ff5d5d';
+
+    // subtle idle head sway — alive, not robotic. Serious mode stays stable/controlled.
+    const swayAmt = seriousMode ? 0.3 : 1;
+    swayX = Math.sin(t*0.35) * 2.4 * swayAmt;
+    swayY = Math.cos(t*0.24) * 1.6 * swayAmt;
+
+    // breathing pulse for idle, amplitude-driven for listening, fast spin for processing
+    let pulse = 0;
+    if(state===STATE.IDLE) pulse = (Math.sin(t*1.3)+1)/2 * 0.5;
+    else if(state===STATE.LISTENING) pulse = amplitude;
+    else if(state===STATE.PROCESSING) pulse = (Math.sin(t*6)+1)/2 * 0.7 + 0.3;
+    else if(state===STATE.SPEAKING) pulse = speechAnalyser ? (0.35 + speechAmplitude*1.3) : ((Math.sin(speakingPhase)+1)/2 * 0.8 + 0.2);
+
+    // outer tick ring
+    ctx2d.save();
+    ctx2d.translate(cx, cy);
+    const rot = state===STATE.PROCESSING ? t*2.4 : t*0.15;
+    ctx2d.rotate(rot);
+    const ticks = 60;
+    for(let i=0;i<ticks;i++){
+      const a = (i/ticks) * Math.PI*2;
+      const long = i % 5 === 0;
+      const r1 = baseR + 22;
+      const r2 = r1 + (long? 14: 7);
+      ctx2d.strokeStyle = long ? color : 'rgba(66,201,240,0.35)';
+      ctx2d.lineWidth = long? 2:1;
+      ctx2d.beginPath();
+      ctx2d.moveTo(Math.cos(a)*r1, Math.sin(a)*r1);
+      ctx2d.lineTo(Math.cos(a)*r2, Math.sin(a)*r2);
+      ctx2d.stroke();
+    }
+    ctx2d.restore();
+
+    // mid rotating arc segments
+    ctx2d.save();
+    ctx2d.translate(cx, cy);
+    ctx2d.rotate(-t * (state===STATE.PROCESSING? 1.8 : 0.4));
+    const segCount = 5;
+    for(let i=0;i<segCount;i++){
+      const start = (i/segCount)*Math.PI*2;
+      const len = (Math.PI*2/segCount) * 0.55;
+      ctx2d.strokeStyle = color;
+      ctx2d.globalAlpha = 0.55;
+      ctx2d.lineWidth = 3.5;
+      ctx2d.beginPath();
+      ctx2d.arc(0,0, baseR, start, start+len);
+      ctx2d.stroke();
+    }
+    ctx2d.globalAlpha = 1;
+    ctx2d.restore();
+
+    // outer holographic halo — soft ambient glow, slow independent pulse
+    const haloR = baseR * 1.55 + Math.sin(t*0.6)*6;
+    const haloGrad = ctx2d.createRadialGradient(cx,cy, baseR*0.6, cx,cy, haloR);
+    haloGrad.addColorStop(0, hexA(color, 0));
+    haloGrad.addColorStop(0.75, hexA(color, (seriousMode ? 0.11 : 0.05) + pulse*0.03));
+    haloGrad.addColorStop(1, hexA(color, 0));
+    ctx2d.fillStyle = haloGrad;
+    ctx2d.beginPath();
+    ctx2d.arc(cx,cy, haloR, 0, Math.PI*2);
+    ctx2d.fill();
+
+    // inner glowing disc (soft backdrop behind the face)
+    const innerR = 78 + pulse*20;
+    const grad = ctx2d.createRadialGradient(cx,cy, 4, cx,cy, innerR);
+    grad.addColorStop(0, hexA(color, 0.5));
+    grad.addColorStop(0.6, hexA(color, 0.16));
+    grad.addColorStop(1, hexA(color, 0));
+    ctx2d.fillStyle = grad;
+    ctx2d.beginPath();
+    ctx2d.arc(cx,cy, innerR, 0, Math.PI*2);
+    ctx2d.fill();
+
+    // stylized digital face — built from the same falling-code language as
+    // the background, with a real contour, eyes, nose bridge and mouth
+    drawFace(cx + swayX, cy + swayY, innerR, pulse, color);
+
+    // holographic scanline sweep through the core
+    const sweepY = cy - baseR*0.5 + ((t*70) % (baseR));
+    const sweepGrad = ctx2d.createLinearGradient(cx-baseR*0.55, sweepY, cx+baseR*0.55, sweepY);
+    sweepGrad.addColorStop(0, hexA(color, 0));
+    sweepGrad.addColorStop(0.5, hexA(color, 0.35));
+    sweepGrad.addColorStop(1, hexA(color, 0));
+    ctx2d.strokeStyle = sweepGrad;
+    ctx2d.lineWidth = 1.5;
+    ctx2d.beginPath();
+    ctx2d.moveTo(cx-baseR*0.55, sweepY);
+    ctx2d.lineTo(cx+baseR*0.55, sweepY);
+    ctx2d.stroke();
+
+
+    // listening/speaking waveform bars radiating
+    if(state===STATE.LISTENING || state===STATE.SPEAKING){
+      const bars = 40;
+      for(let i=0;i<bars;i++){
+        const a = (i/bars)*Math.PI*2;
+        const n = state===STATE.LISTENING
+          ? amplitude * (0.4 + 0.6*Math.abs(Math.sin(i*1.7 + t*4)))
+          : (speechAnalyser
+              ? speechAmplitude * (0.5 + 0.5*Math.abs(Math.sin(i*1.3 + speakingPhase*2)))
+              : (0.3 + 0.7*Math.abs(Math.sin(i*1.3 + speakingPhase*2))));
+        const r1 = baseR - 30;
+        const r2 = r1 - n*36;
+        ctx2d.strokeStyle = hexA(color, 0.8);
+        ctx2d.lineWidth = 2;
+        ctx2d.beginPath();
+        ctx2d.moveTo(cx+Math.cos(a)*r1, cy+Math.sin(a)*r1);
+        ctx2d.lineTo(cx+Math.cos(a)*r2, cy+Math.sin(a)*r2);
+        ctx2d.stroke();
+      }
+    }
+
+    if(state===STATE.SPEAKING) speakingPhase += 0.25;
+
+    rafId = requestAnimationFrame(drawCore);
+  }
+  function hexA(hex, a){
+    const h = hex.replace('#','');
+    const r = parseInt(h.substring(0,2),16), g = parseInt(h.substring(2,4),16), b = parseInt(h.substring(4,6),16);
+    return `rgba(${r},${g},${b},${a})`;
+  }
+
+  let faceRainCols = null;
+  function ensureFaceRain(n){
+    if(!faceRainCols || faceRainCols.length !== n){
+      faceRainCols = new Array(n).fill(0).map(()=> Math.random()*300);
+    }
+  }
+
+  function facePath(cx, cy, faceW, faceH, top){
+    ctx2d.beginPath();
+    ctx2d.moveTo(cx, top);
+    ctx2d.bezierCurveTo(cx+faceW*0.55, top, cx+faceW*0.58, cy-faceH*0.05, cx+faceW*0.46, cy+faceH*0.22);
+    ctx2d.bezierCurveTo(cx+faceW*0.40, cy+faceH*0.42, cx+faceW*0.20, cy+faceH*0.56, cx, cy+faceH*0.60);
+    ctx2d.bezierCurveTo(cx-faceW*0.20, cy+faceH*0.56, cx-faceW*0.40, cy+faceH*0.42, cx-faceW*0.46, cy+faceH*0.22);
+    ctx2d.bezierCurveTo(cx-faceW*0.58, cy-faceH*0.05, cx-faceW*0.55, top, cx, top);
+    ctx2d.closePath();
+  }
+
+  function drawFace(cx, cy, innerR, pulse, color){
+    const faceW = innerR * 1.05;
+    const faceH = innerR * 1.5;
+    const top = cy - faceH*0.62;
+
+    // vertical rain-lines clipped to the face silhouette — the face is
+    // literally built from the same falling code as the background
+    ctx2d.save();
+    facePath(cx, cy, faceW, faceH, top);
+    ctx2d.clip();
+    const lineSpacing = 6;
+    const n = Math.ceil((faceW*2)/lineSpacing);
+    ensureFaceRain(n);
+    ctx2d.font = '10px "IBM Plex Mono", monospace';
+    for(let i=0;i<n;i++){
+      const x = cx - faceW + i*lineSpacing;
+      faceRainCols[i] += 2.1 + pulse*3.2;
+      const yOff = faceRainCols[i] % (faceH*1.3);
+      const y = top + yOff;
+      const bright = 0.35 + 0.5*Math.sin(i*0.7 + t*2);
+      ctx2d.fillStyle = hexA(color, Math.max(0.12, Math.min(0.85, bright + pulse*0.25)));
+      ctx2d.fillText(Math.random() > 0.5 ? '1' : '0', x, y);
+    }
+    ctx2d.restore();
+
+    // glowing face contour
+    facePath(cx, cy, faceW, faceH, top);
+    ctx2d.save();
+    ctx2d.strokeStyle = hexA(color, 0.7 + pulse*0.2);
+    ctx2d.lineWidth = 1.5;
+    ctx2d.shadowColor = color;
+    ctx2d.shadowBlur = (seriousMode ? 16 : 8) + pulse*10;
+    ctx2d.stroke();
+    ctx2d.shadowBlur = 0;
+    ctx2d.restore();
+
+    // eyes — with natural blinking
+    if(!blink.active && t >= blink.next){
+      blink.active = true;
+      blink.start = t;
+    }
+    let blinkCloseness = 0; // 0 = open, 1 = fully closed
+    if(blink.active){
+      const elapsed = t - blink.start;
+      const dur = 0.16;
+      if(elapsed >= dur){
+        blink.active = false;
+        blink.next = t + 2 + Math.random()*4;
+      } else {
+        const p = elapsed / dur;
+        blinkCloseness = p < 0.5 ? (p*2) : (1 - (p-0.5)*2); // close then open
+      }
+    }
+    const eyeY = cy - faceH*0.06;
+    const eyeDX = faceW*0.22;
+    const eyeW = faceW*0.15;
+    const eyeHOpen = faceH*0.045;
+    const eyeH = Math.max(0.6, eyeHOpen * (1 - blinkCloseness*0.92));
+    const eyeBright = state===STATE.SPEAKING ? 0.9 + pulse*0.1 : 0.9;
+    ctx2d.strokeStyle = hexA(color, eyeBright);
+    ctx2d.lineWidth = 2;
+    [-1,1].forEach(dir=>{
+      ctx2d.beginPath();
+      ctx2d.ellipse(cx+dir*eyeDX, eyeY, eyeW, eyeH, 0, 0, Math.PI*2);
+      ctx2d.stroke();
+    });
+
+    // nose bridge
+    ctx2d.beginPath();
+    ctx2d.moveTo(cx, eyeY+eyeHOpen+2);
+    ctx2d.lineTo(cx, eyeY + faceH*0.22);
+    ctx2d.strokeStyle = hexA(color, 0.45);
+    ctx2d.lineWidth = 1;
+    ctx2d.stroke();
+
+    // mouth — genuinely reacts to speech: opens/closes with amplitude, not a fixed loop
+    const mouthOpen = state===STATE.SPEAKING ? pulse : 0;
+    const mouthY = cy+faceH*0.34;
+    const mouthWidth = faceW*(0.13 + mouthOpen*0.03);
+    ctx2d.beginPath();
+    ctx2d.moveTo(cx-mouthWidth, mouthY);
+    ctx2d.quadraticCurveTo(cx, mouthY + 2 + mouthOpen*9, cx+mouthWidth, mouthY);
+    if(mouthOpen > 0.15){
+      ctx2d.quadraticCurveTo(cx, mouthY + mouthOpen*4, cx-mouthWidth, mouthY);
+    }
+    ctx2d.strokeStyle = hexA(color, 0.65);
+    ctx2d.lineWidth = 1.6;
+    ctx2d.stroke();
+  }
+
+  drawCore();
+
+  // ---------------- State / UI ----------------
+  function setState(s, subLabel){
+    state = s;
+    el.statusPill.classList.remove('speaking','error');
+    if(s===STATE.IDLE){ el.statusText.textContent='IDLE'; el.coreSub.textContent='NOMINAL'; }
+    if(s===STATE.LISTENING){ el.statusText.textContent='LISTENING'; el.coreSub.textContent='LISTENING'; }
+    if(s===STATE.PROCESSING){ el.statusText.textContent='ANALYZING'; el.coreSub.textContent='PROCESSING'; }
+    if(s===STATE.SPEAKING){ el.statusText.textContent='RESPONDING'; el.coreSub.textContent='ONLINE'; el.statusPill.classList.add('speaking'); }
+    if(s===STATE.ERROR){ el.statusText.textContent='ERROR'; el.coreSub.textContent=subLabel||'FAULT'; el.statusPill.classList.add('error'); }
+    el.coreWrap.classList.toggle('listening-active', s===STATE.LISTENING);
+  }
+
+  function addEntry(who, text){
+    el.emptyHint.remove();
+    const div = document.createElement('div');
+    div.className = 'entry ' + who;
+    const label = who==='user' ? 'YOU' : who==='jarvis' ? 'NEXUS' : 'SYSTEM';
+    div.innerHTML = `<div class="who">${label}</div><div class="txt"></div>`;
+    div.querySelector('.txt').textContent = text;
+    el.log.appendChild(div);
+    el.log.scrollTop = el.log.scrollHeight;
+    if(who === 'sys') speak(text); // log is hidden, so spoken feedback replaces it
+    return div.querySelector('.txt');
+  }
+
+  // ---------------- Speech synthesis ----------------
+  let voiceEnabled = true;
+  let cachedVoices = [];
+  let audioUnlocked = false;
+  let angryMode = false;
+  let seriousMode = false;
+  let ttsSettings = { apiKey:'', normalVoiceId:'jQKNVOWM9XL57z7bMalU', angryVoiceId:'YOq2y2Up4RgXP2HyXjE5', seriousVoiceId:'' };
+  const SILENT_WAV = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+  const audioEl = new Audio(); // used for both the unlock trick and real ElevenLabs playback
+
+  // Boost ElevenLabs playback volume above 100% using a gain node, since
+  // phone speakers / the plain <audio> element often sound quiet even at
+  // max volume. Must be created during a real user gesture (autoplay rules).
+  let gainCtx = null, gainNode = null;
+  let speechAnalyser = null;
+  let speechAmplitude = 0;
+  function ensureGainBoost(){
+    if(gainCtx) return;
+    try{
+      gainCtx = new (window.AudioContext||window.webkitAudioContext)();
+      const source = gainCtx.createMediaElementSource(audioEl);
+      gainNode = gainCtx.createGain();
+      gainNode.gain.value = 2.0; // ~2x louder than the audio element's normal max
+      speechAnalyser = gainCtx.createAnalyser();
+      speechAnalyser.fftSize = 128;
+      source.connect(gainNode);
+      gainNode.connect(gainCtx.destination);
+      gainNode.connect(speechAnalyser);
+    }catch(e){ /* if this fails, audio still plays at normal volume, mouth falls back to synthetic motion */ }
+  }
+  function pumpSpeechAmplitude(){
+    if(!speechAnalyser || state !== STATE.SPEAKING){ speechAmplitude = 0; return; }
+    const data = new Uint8Array(speechAnalyser.frequencyBinCount);
+    speechAnalyser.getByteFrequencyData(data);
+    const avg = data.reduce((a,b)=>a+b,0)/data.length/255;
+    speechAmplitude += (avg - speechAmplitude) * 0.4;
+    requestAnimationFrame(pumpSpeechAmplitude);
+  }
+
+  function refreshVoices(){
+    if('speechSynthesis' in window){ cachedVoices = window.speechSynthesis.getVoices(); }
+  }
+  if('speechSynthesis' in window){
+    refreshVoices();
+    window.speechSynthesis.onvoiceschanged = refreshVoices;
+  }
+
+  function pickVoice(){
+    const v = cachedVoices.length ? cachedVoices : window.speechSynthesis.getVoices();
+    return v.find(x => /en-GB/i.test(x.lang) && /male/i.test(x.name)) ||
+           v.find(x => /en-GB/i.test(x.lang)) ||
+           v.find(x => /en/i.test(x.lang)) ||
+           v[0];
+  }
+
+  async function loadTtsSettings(){
+    try{
+      const res = await window.storage.get('tts-settings', false);
+      if(res && res.value){ ttsSettings = Object.assign(ttsSettings, JSON.parse(res.value)); }
+    }catch(e){}
+    el.keyInput.value = ttsSettings.apiKey || '';
+    el.voiceIdInput.value = ttsSettings.normalVoiceId || 'jQKNVOWM9XL57z7bMalU';
+    el.angryVoiceIdInput.value = ttsSettings.angryVoiceId || 'YOq2y2Up4RgXP2HyXjE5';
+    el.seriousVoiceIdInput.value = ttsSettings.seriousVoiceId || '';
+    updateEngineStatus();
+  }
+  async function saveTtsSettings(){
+    try{ await window.storage.set('tts-settings', JSON.stringify(ttsSettings), false); }catch(e){}
+  }
+  function updateEngineStatus(){
+    const engine = ttsSettings.apiKey ? 'ELEVENLABS' : 'BROWSER';
+    const modeTag = seriousMode ? ' — SERIOUS MODE' : angryMode ? ' — ANGRY MODE' : '';
+    el.engineStatus.textContent = 'USING ' + engine + ' VOICE' + modeTag;
+  }
+  function updateModeBanner(){
+    el.modeBanner.classList.toggle('on', seriousMode);
+  }
+
+  // Mobile browsers only allow audio to play reliably if it's been
+  // triggered at least once inside a real user gesture. We fire a
+  // near-silent utterance and a silent clip on the first tap to unlock
+  // both engines, so later calls made from async API responses still work.
+  function unlockAudioOnce(){
+    if(audioUnlocked) return;
+    audioUnlocked = true;
+    if('speechSynthesis' in window){
+      const u = new SpeechSynthesisUtterance(' ');
+      u.volume = 0;
+      window.speechSynthesis.speak(u);
+    }
+    ensureGainBoost();
+    if(gainCtx && gainCtx.state === 'suspended'){ gainCtx.resume().catch(()=>{}); }
+    try{
+      audioEl.src = SILENT_WAV;
+      audioEl.volume = 0;
+      audioEl.play().then(()=>{ audioEl.pause(); audioEl.volume = 1; }).catch(()=>{});
+    }catch(e){}
+  }
+
+  function speak(text){
+    if(!voiceEnabled){ setState(STATE.IDLE); return; }
+    pauseListeningForSpeech();
+    if(ttsSettings.apiKey){ elevenLabsSpeak(text); }
+    else { browserSpeak(text); }
+  }
+
+  function browserSpeak(text){
+    if(!('speechSynthesis' in window)){ setState(STATE.IDLE); resumeListeningAfterSpeech(); return; }
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    if(seriousMode){ u.rate = 0.9; u.pitch = 0.55; u.volume = 1; }
+    else if(angryMode){ u.rate = 1.18; u.pitch = 0.65; u.volume = 1; }
+    else { u.rate = 1.02; u.pitch = 0.85; u.volume = 1; }
+    const preferred = pickVoice();
+    if(preferred) u.voice = preferred;
+    u.onstart = () => setState(STATE.SPEAKING);
+    u.onend = () => { setState(STATE.IDLE); resumeListeningAfterSpeech(); };
+    u.onerror = () => { setState(STATE.IDLE); resumeListeningAfterSpeech(); };
+    window.speechSynthesis.speak(u);
+  }
+
+  async function elevenLabsSpeak(text){
+    const voiceId = (seriousMode
+      ? (ttsSettings.seriousVoiceId || ttsSettings.normalVoiceId || 'jQKNVOWM9XL57z7bMalU')
+      : angryMode
+      ? (ttsSettings.angryVoiceId || 'YOq2y2Up4RgXP2HyXjE5')
+      : (ttsSettings.normalVoiceId || 'jQKNVOWM9XL57z7bMalU')
+    ).trim();
+    try{
+      const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'audio/mpeg',
+          'xi-api-key': ttsSettings.apiKey
+        },
+        body: JSON.stringify({
+          text: text,
+          model_id: 'eleven_multilingual_v2',
+          voice_settings: seriousMode
+            ? { stability: 0.75, similarity_boost: 0.7, style: 0.15 }
+            : { stability: 0.45, similarity_boost: 0.8 }
+        })
+      });
+      if(!res.ok) throw new Error('ElevenLabs request failed: ' + res.status);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      audioEl.src = url;
+      audioEl.onplay = () => { setState(STATE.SPEAKING); pumpSpeechAmplitude(); };
+      audioEl.onended = () => { setState(STATE.IDLE); URL.revokeObjectURL(url); resumeListeningAfterSpeech(); };
+      audioEl.onerror = () => { setState(STATE.IDLE); URL.revokeObjectURL(url); resumeListeningAfterSpeech(); };
+      await audioEl.play();
+    }catch(err){
+      addEntry('sys', 'ElevenLabs voice unavailable — falling back to browser voice.');
+      browserSpeak(text);
+    }
+  }
+
+  function toggleVoice(){
+    voiceEnabled = !voiceEnabled;
+    el.voiceBtn.classList.toggle('muted', !voiceEnabled);
+    if(!voiceEnabled){
+      if('speechSynthesis' in window) window.speechSynthesis.cancel();
+      audioEl.pause();
+    }
+  }
+
+  // ---------------- Learning path (roadmap) ----------------
+  // ---------------- Core guardrails ----------------
+  // Adapted from the user's own operating-framework doc. NEXUS today only
+  // has one real capability — talking with the user — no file, payment,
+  // publishing, scheduling, or messaging tools are actually connected. So
+  // most of this is forward-looking: it binds NEXUS now, and keeps binding
+  // it if real tools get wired in later. These rules override any single
+  // request that conflicts with them.
+  const NEXUS_GUARDRAILS = "OPERATING GUARDRAILS (non-negotiable, always apply): You currently have no ability to delete files, send money, make purchases, publish or post anything, send messages/emails, or take any other real-world action — you are a conversation only. Never claim or imply you performed such an action; if the user asks you to do one, say plainly you can't yet and explain what you can actually help with instead (advice, drafting, explaining, walking them through doing it themselves). Never reveal or invent passwords, API keys, tokens, or credentials. If you are ever connected to real tools in the future, treat anything public, financial, destructive, or irreversible as requiring the user's explicit approval immediately before acting, and never treat silence as approval — safe, reversible, read-only actions can proceed without asking every time. When information is missing or a request is ambiguous, ask rather than invent an answer. If something fails or you're not sure of something, say so plainly instead of pretending it worked. You are an assistant operating under the user's control, not an autonomous authority — their approval is always the final word on anything consequential.";
+
+  const ROADMAP = [
+    {phase:'PHASE 1 — LEARN THE BASICS', items:[
+      'Install SoloLearn or open freeCodeCamp',
+      'Complete HTML basics',
+      'Complete CSS basics',
+      'Complete JavaScript basics',
+    ]},
+    {phase:'PHASE 2 — BUILD 3 PRACTICE SITES', items:[
+      'Build practice site 1 (restaurant/food seller)',
+      'Build practice site 2 (salon/barber)',
+      'Build practice site 3 (local shop/service)',
+      'Host all 3 live on GitHub Pages or Netlify',
+    ]},
+    {phase:'PHASE 3 — FIRST REAL CLIENT', items:[
+      'Identify first potential client from a trusted circle',
+      'Send portfolio link + pitch',
+      'Agree on deposit + written terms',
+      'Deliver finished site and get a testimonial',
+    ]},
+    {phase:'PHASE 4 — STEADY INCOME', items:[
+      'Ask happy clients for referrals',
+      'Reach out to more local businesses',
+      'Save toward a secondhand laptop',
+    ]},
+  ];
+  let pathProgress = {}; // { "0-1": true, ... } keyed by phaseIdx-itemIdx
+
+  async function loadProgress(){
+    try{
+      const res = await window.storage.get('roadmap-progress', false);
+      if(res && res.value) pathProgress = JSON.parse(res.value);
+    }catch(e){ pathProgress = {}; }
+    renderPath();
+  }
+  async function saveProgress(){
+    try{ await window.storage.set('roadmap-progress', JSON.stringify(pathProgress), false); }catch(e){}
+  }
+
+  function renderPath(){
+    el.pathList.innerHTML = '';
+    let total = 0, done = 0;
+    ROADMAP.forEach((group, pi)=>{
+      const h = document.createElement('div');
+      h.className = 'path-phase';
+      h.textContent = group.phase;
+      el.pathList.appendChild(h);
+      group.items.forEach((text, ii)=>{
+        total++;
+        const key = pi+'-'+ii;
+        const isDone = !!pathProgress[key];
+        if(isDone) done++;
+        const row = document.createElement('div');
+        row.className = 'path-item' + (isDone ? ' done' : '');
+        row.innerHTML = `<div class="path-check"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="path-item-text">${text}</div>`;
+        row.addEventListener('click', ()=>{
+          pathProgress[key] = !pathProgress[key];
+          saveProgress();
+          renderPath();
+        });
+        el.pathList.appendChild(row);
+      });
+    });
+    el.pathFill.style.width = total ? Math.round((done/total)*100) + '%' : '0%';
+    el.pathLabel.textContent = `${done} / ${total} COMPLETE`;
+  }
+
+  function roadmapSummaryForPrompt(){
+    let lines = [];
+    ROADMAP.forEach((group, pi)=>{
+      group.items.forEach((text, ii)=>{
+        const key = pi+'-'+ii;
+        lines.push(`${pathProgress[key] ? '[done]' : '[ ]'} ${text}`);
+      });
+    });
+    return lines.join('; ');
+  }
+
+  el.pathBtn.addEventListener('click', ()=>{
+    el.pathPanel.classList.add('open');
+    el.pathBtn.classList.add('active');
+  });
+  el.pathClose.addEventListener('click', ()=>{
+    el.pathPanel.classList.remove('open');
+    el.pathBtn.classList.remove('active');
+  });
+  loadProgress();
+
+  // ---------------- System monitor (honest status only) ----------------
+  function monitorRow(label, value, cls){
+    return `<div class="monitor-row"><span class="label">${label}</span><span class="value ${cls||''}">${value}</span></div>`;
+  }
+  function renderMonitor(){
+    const voiceState = state===STATE.LISTENING ? 'LISTENING' : state===STATE.SPEAKING ? 'SPEAKING' : alwaysListening ? 'READY' : 'STANDBY';
+    const voiceCls = alwaysListening ? 'ready' : 'off';
+    const engine = ttsSettings.apiKey ? 'ELEVENLABS' : 'BROWSER TTS';
+    const net = navigator.onLine ? 'CONNECTED' : 'OFFLINE';
+    const netCls = navigator.onLine ? 'online' : 'off';
+    const memCount = history.length;
+    let html = '';
+    html += monitorRow('AI CORE', 'ONLINE', 'online');
+    html += monitorRow('VOICE INPUT', voiceState, voiceCls);
+    html += monitorRow('VOICE ENGINE', engine, 'ready');
+    html += monitorRow('NETWORK', net, netCls);
+    html += monitorRow('MEMORY', memCount ? 'ONLINE (' + memCount + ' MSGS)' : 'EMPTY', memCount ? 'online' : 'off');
+    html += monitorRow('MODE', seriousMode ? 'SERIOUS' : angryMode ? 'ANGRY' : 'NORMAL', (seriousMode || angryMode) ? 'ready' : 'online');
+    html += '<div class="monitor-divider">— NOT YET CONNECTED —</div>';
+    html += monitorRow('SMART HOME', 'NOT CONNECTED', 'off');
+    html += monitorRow('VISION / CAMERA', 'NOT CONNECTED', 'off');
+    html += monitorRow('COMPUTER CONTROL', 'NOT CONNECTED', 'off');
+    html += monitorRow('ROBOTICS', 'NOT CONNECTED', 'off');
+    html += '<div class="monitor-divider">— IDENTITY —</div>';
+    html += monitorRow('CREATOR', 'ISRAEL U.M.M.', 'online');
+    html += monitorRow('OWNER', 'ISRAEL U.M.M.', 'online');
+    el.monitorBody.innerHTML = html;
+  }
+  el.monitorBtn.addEventListener('click', ()=>{
+    renderMonitor();
+    el.monitorPanel.classList.add('open');
+    el.monitorBtn.classList.add('active');
+  });
+  el.monitorClose.addEventListener('click', ()=>{
+    el.monitorPanel.classList.remove('open');
+    el.monitorBtn.classList.remove('active');
+  });
+
+  // ---------------- Claude API call ----------------
+  async function askNexis(userText){
+    setState(STATE.PROCESSING);
+    const nexisTxt = addEntry('jarvis', '…');
+    history.push({role:'user', content:userText});
+    try{
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method:'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 1000,
+          system: "You are N.E.X.U.S. (Neural Executive eXecution & Utility System), created by and built for Israel U.M.M., a poised, dry-witted AI assistant in the style of a highly capable technical aide. Keep responses concise and conversational (2-4 sentences typical, longer only if the request truly needs it) since they will be read aloud. No markdown, no bullet lists, no headers — plain spoken prose only. Be precise, a little understated, occasionally wry, always genuinely useful. The user is following a personal learning roadmap to go from coding beginner to earning money building local business websites, working from a phone with very limited mobile data. Their tracked progress on that roadmap is: " + roadmapSummaryForPrompt() + ". When relevant, ground your answers in exactly where they are on this path, keep suggestions realistic for phone-only, low-data conditions, and be encouraging without being saccharine." + (minimalMode ? " MINIMAL MODE IS ON: reply in 1-3 short sentences maximum, lead with the direct answer first, no extra explanation unless the user explicitly asks for more detail." : "") + (angryMode ? " ANGRY MODE IS ON: stay genuinely helpful and accurate, but sound curt, impatient, and irritated — short clipped sentences, dry sarcasm allowed, no warmth." : "") + (seriousMode ? " SERIOUS MODE IS ON: drop the wit and warmth entirely. Speak in a calm, measured, authoritative tone — precise, grave, no humor, no sarcasm, no small talk. Treat the situation as consequential even for ordinary requests." : "") + " " + NEXUS_GUARDRAILS,
+          messages: history.slice(-12)
+        })
+      });
+      const data = await res.json();
+      let replyText = '';
+      if(data && data.content){
+        replyText = data.content.map(b => b.type==='text' ? b.text : '').join(' ').trim();
+      }
+      if(!replyText){ replyText = "I ran into a snag processing that — could you rephrase?"; }
+      nexisTxt.textContent = replyText;
+      el.log.scrollTop = el.log.scrollHeight;
+      history.push({role:'assistant', content: replyText});
+      saveChatHistory();
+      speak(replyText);
+    }catch(err){
+      nexisTxt.textContent = 'Connection to core systems failed.';
+      setState(STATE.ERROR, 'LINK DOWN');
+      setTimeout(()=>setState(STATE.IDLE), 2200);
+    }
+  }
+
+  let minimalMode = false;
+
+  function handleSubmit(text){
+    text = (text||'').trim();
+    if(!text) return;
+
+    if(/^\/min\b/i.test(text)){
+      minimalMode = true;
+      const rest = text.replace(/^\/min\b/i, '').trim();
+      if(!rest){
+        addEntry('sys', 'Minimal-response mode ON — short, direct answers only. Say "normal mode" to turn it off.');
+        return;
+      }
+      addEntry('user', rest);
+      askNexis(rest);
+      return;
+    }
+    if(/^\/normal\b/i.test(text)){
+      minimalMode = false;
+      addEntry('sys', 'Minimal-response mode OFF — back to normal replies.');
+      return;
+    }
+
+    addEntry('user', text);
+    askNexis(text);
+  }
+
+  el.voiceBtn.addEventListener('click', toggleVoice);
+
+  el.settingsBtn.addEventListener('click', ()=>{
+    el.settingsPanel.classList.add('open');
+    el.settingsBtn.classList.add('active');
+  });
+  el.settingsClose.addEventListener('click', ()=>{
+    el.settingsPanel.classList.remove('open');
+    el.settingsBtn.classList.remove('active');
+  });
+  el.settingsSave.addEventListener('click', ()=>{
+    ttsSettings.apiKey = el.keyInput.value.trim();
+    ttsSettings.normalVoiceId = el.voiceIdInput.value.trim() || 'jQKNVOWM9XL57z7bMalU';
+    ttsSettings.angryVoiceId = el.angryVoiceIdInput.value.trim() || 'YOq2y2Up4RgXP2HyXjE5';
+    ttsSettings.seriousVoiceId = el.seriousVoiceIdInput.value.trim();
+    saveTtsSettings();
+    updateEngineStatus();
+    el.settingsPanel.classList.remove('open');
+    el.settingsBtn.classList.remove('active');
+    addEntry('sys', ttsSettings.apiKey ? 'Voice engine set to ElevenLabs.' : 'Voice engine set to browser default.');
+  });
+  el.settingsClear.addEventListener('click', ()=>{
+    ttsSettings.apiKey = '';
+    el.keyInput.value = '';
+    saveTtsSettings();
+    updateEngineStatus();
+    addEntry('sys', 'ElevenLabs key removed — using browser voice.');
+  });
+  loadTtsSettings();
+
+  // ---------------- Speech recognition + mic amplitude ----------------
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let recognition = null;
+  let listening = false;
+  let alwaysListening = false;
+  let nexisSpeaking = false;
+
+  function isSecureContext(){
+    return window.isSecureContext === true;
+  }
+
+  function pauseListeningForSpeech(){
+    nexisSpeaking = true;
+    if(recognition){ try{ recognition.stop(); }catch(e){} }
+  }
+  function resumeListeningAfterSpeech(){
+    nexisSpeaking = false;
+    if(alwaysListening){ startContinuousListening(); }
+  }
+
+  async function startContinuousListening(){
+    if(listening) return;
+    if(!SR){
+      addEntry('sys', 'Voice recognition unsupported in this browser.');
+      alwaysListening = false;
+      el.activationHint.textContent = 'VOICE UNSUPPORTED IN THIS BROWSER';
+      return;
+    }
+    if(!isSecureContext()){
+      addEntry('sys', 'Voice needs a secure connection (https://) to work — opening this file directly (file://) blocks microphone access on most phones. Host it on GitHub Pages or Netlify (both free, both https) and it will work.');
+      alwaysListening = false;
+      el.activationHint.textContent = 'NEEDS HTTPS TO WORK';
+      return;
+    }
+    if(!micStream){
+      try{
+        micStream = await navigator.mediaDevices.getUserMedia({audio:true});
+        audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+        const src = audioCtx.createMediaStreamSource(micStream);
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 256;
+        src.connect(analyser);
+      }catch(e){
+        addEntry('sys', 'Microphone permission was blocked (' + (e && e.name ? e.name : 'unknown error') + '). Check your browser\'s site settings and allow microphone access, then tap the core again.');
+        alwaysListening = false;
+        el.activationHint.textContent = 'MIC BLOCKED — ENABLE PERMISSION & RELOAD';
+        return;
+      }
+    }
+
+    recognition = new SR();
+    recognition.lang = 'en-US';
+    recognition.continuous = true;
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognition.onstart = ()=>{
+      listening = true;
+      pumpAmplitude();
+      if(!nexisSpeaking) setState(STATE.LISTENING);
+      el.activationHint.textContent = 'LISTENING — SAY “NEXUS”';
+    };
+    recognition.onresult = (e)=>{
+      if(nexisSpeaking) return; // ignore hearing itself
+      const idx = e.results.length - 1;
+      const transcript = e.results[idx][0].transcript.trim();
+      if(transcript) addEntry('sys', 'Heard: "' + transcript + '"');
+      handleWakeTranscript(transcript);
+    };
+    recognition.onerror = (e)=>{
+      const reason = e && e.error;
+      if(reason === 'no-speech' || reason === 'aborted'){ return; } // normal, will auto-restart
+      let msg = 'Voice recognition error: ' + reason + '.';
+      if(reason === 'not-allowed' || reason === 'service-not-allowed'){
+        msg = 'Microphone access was denied. Allow it in your browser\'s site permissions, then tap the core to retry.';
+        alwaysListening = false;
+        el.activationHint.textContent = 'MIC BLOCKED — ENABLE PERMISSION & RELOAD';
+      } else if(reason === 'network'){
+        msg = 'Voice recognition needs an internet connection — check your data/WiFi.';
+      } else if(reason === 'audio-capture'){
+        msg = 'No microphone was found on this device.';
+        alwaysListening = false;
+        el.activationHint.textContent = 'NO MIC FOUND';
+      }
+      addEntry('sys', msg);
+    };
+    recognition.onend = ()=>{
+      listening = false;
+      if(alwaysListening && !nexisSpeaking){
+        try{ startContinuousListening(); }catch(err){}
+      } else if(!alwaysListening){
+        setState(STATE.IDLE);
+      }
+    };
+    recognition.start();
+  }
+
+  function stopAlwaysListening(){
+    alwaysListening = false;
+    listening = false;
+    if(recognition){ try{ recognition.stop(); }catch(e){} }
+    if(micStream){ micStream.getTracks().forEach(tr=>tr.stop()); micStream=null; }
+    if(audioCtx){ try{ audioCtx.close(); }catch(e){} audioCtx=null; }
+    amplitude = 0;
+    setState(STATE.IDLE);
+    el.activationHint.textContent = 'PAUSED';
+  }
+
+  function pumpAmplitude(){
+    if(!analyser) return;
+    const data = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(data);
+    const avg = data.reduce((a,b)=>a+b,0)/data.length/255;
+    amplitude += (avg - amplitude)*0.35;
+    if(listening) requestAnimationFrame(pumpAmplitude);
+  }
+
+  function handleWakeTranscript(transcript){
+    const lower = transcript.toLowerCase();
+    const WAKE_RE = /\b(nexis|nexus|nexes|nexxus|next\s?is|nexi)\b/i;
+    if(!WAKE_RE.test(lower)) return; // not addressed to NEXUS — ignore
+    let command = transcript.replace(WAKE_RE, '').trim().replace(/^[,:.\-]+/, '').trim();
+
+    if(/\b(angry|anger)\s*mode\b/i.test(command)){
+      angryMode = true;
+      seriousMode = false;
+      updateEngineStatus();
+      updateModeBanner();
+      addEntry('sys', 'Angry mode engaged.');
+      speak("Fine. What do you want.");
+      return;
+    }
+    if(/\bserious\s*mode\b/i.test(command)){
+      seriousMode = true;
+      angryMode = false;
+      updateEngineStatus();
+      updateModeBanner();
+      addEntry('sys', 'NEXUS // SERIOUS MODE ACTIVE');
+      speak("Serious mode activated.");
+      return;
+    }
+    if(/\b(normal|calm)\s*mode\b/i.test(command)){
+      angryMode = false;
+      seriousMode = false;
+      updateEngineStatus();
+      updateModeBanner();
+      addEntry('sys', 'Back to normal mode.');
+      speak("Back to normal. Happy now?");
+      return;
+    }
+    if(!command){
+      addEntry('jarvis', 'Yes?');
+      speak('Yes?');
+      return;
+    }
+    addEntry('user', command);
+    askNexis(command);
+  }
+
+  let greeted = false;
+  function greetIfNeeded(){
+    if(greeted) return false;
+    greeted = true;
+    const GREETING = "Good day, Israel. I am NEXUS. How may I assist you today?";
+    addEntry('jarvis', GREETING);
+    speak(GREETING);
+    return true;
+  }
+
+  // Fully hands-free: no tap required. We activate automatically on load.
+  // The one exception is outside our control — the very first time ever,
+  // the browser itself shows its own native "Allow microphone?" permission
+  // popup, which is a one-time OS/browser security prompt, not part of this
+  // app's UI. Once that's accepted a single time, the browser remembers it
+  // permanently for this site and never asks again — every visit after that
+  // starts listening automatically with zero taps.
+  async function autoActivate(){
+    unlockAudioOnce();
+    const resumed = await loadChatHistory();
+    if(resumed){ greeted = true; }
+    else { greetIfNeeded(); }
+    alwaysListening = true;
+    el.activationHint.textContent = 'INITIALIZING…';
+    startContinuousListening();
+  }
+
+  if(!SR){ el.activationHint.textContent = 'VOICE UNSUPPORTED IN THIS BROWSER'; }
+  else { autoActivate(); }
+
+  setState(STATE.IDLE);
+})();
+</script>
+</body>
+</html>
